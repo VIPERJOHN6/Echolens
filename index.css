@@ -40,6 +40,12 @@
   padding: 0;
 }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
 body {
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: var(--bg-main);
@@ -51,7 +57,6 @@ body {
   display: flex;
   flex-direction: column;
   line-height: 1.5;
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -949,5 +954,131 @@ body {
   }
   .system-time {
     align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-container {
+    padding: 10px;
+  }
+  
+  .app-header {
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+  }
+  
+  .header-logo-group {
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .app-logo {
+    height: 36px;
+  }
+  
+  .header-title-block .main-title {
+    font-size: 20px;
+  }
+  
+  .header-title-block .subtitle {
+    font-size: 11px;
+  }
+  
+  .system-time {
+    font-size: 13px;
+    padding: 4px 10px;
+    margin-top: 4px;
+  }
+  
+  .dashboard-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  
+  .card-title {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  
+  .status-grid {
+    gap: 10px;
+  }
+  
+  .status-item {
+    padding: 8px 12px;
+  }
+  
+  .btn {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  
+  /* Responsive LCD */
+  .lcd-housing-outer {
+    padding: 12px;
+    border-width: 2px;
+  }
+  
+  .lcd-bezel {
+    border-width: 4px;
+    padding: 8px;
+  }
+  
+  .lcd-screen {
+    padding: 8px 10px;
+    height: 60px;
+  }
+  
+  .lcd-line {
+    font-size: 14px;
+    letter-spacing: 1px;
+    height: 18px;
+    line-height: 18px;
+  }
+  
+  .lcd-metal-accent-l, .lcd-metal-accent-r {
+    display: none; /* Hide metal accents on tiny screens */
+  }
+  
+  /* Responsive Controls stack */
+  .input-send-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .input-send-group .btn {
+    width: 100%;
+  }
+  
+  .lcd-quick-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .mic-button {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .mic-icon-circle {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .mic-svg {
+    width: 26px;
+    height: 26px;
+  }
+  
+  .soundwave-container {
+    width: 76px;
+    height: 76px;
+  }
+  
+  .transcript-pane {
+    min-height: 90px;
+    padding: 12px;
+    font-size: 14px;
   }
 }
