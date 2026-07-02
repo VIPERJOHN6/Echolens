@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EchoLens - Smart Captioning Interface & Hardware Control Panel</title>
+  <meta name="description" content="A premium control dashboard to bridge speech-to-text artificial intelligence with EchoLens AR smart glasses hardware prototypes.">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo-group">
+        <img src="assets/logo.png" alt="EchoLens Logo" class="app-logo" id="appLogo">
+        <div class="header-title-block">
+          <h1 class="main-title">EchoLens</h1>
+          <p class="subtitle">Smart Captioning Control Dashboard</p>
+        </div>
+      </div>
+      <div class="system-time" id="systemTime">--:--:--</div>
+    </header>
+
+    <!-- Main Dashboard Grid -->
+    <main class="dashboard-grid">
+      <!-- COLUMN 1: System Connection & Controls -->
+      <div class="grid-column col-left">
+        <!-- Connection Status Card -->
+        <section class="dashboard-card status-card">
+          <h2 class="card-title">Connection Status</h2>
+          <div class="status-grid">
+            <div class="status-item" id="statusArduino">
+              <span class="status-indicator-dot dot-offline"></span>
+              <div class="status-info">
+                <span class="status-label">Arduino Uno</span>
+                <span class="status-value val-offline" id="valArduino">Disconnected</span>
+              </div>
+            </div>
+            <div class="status-item" id="statusMic">
+              <span class="status-indicator-dot dot-offline"></span>
+              <div class="status-info">
+                <span class="status-label">Microphone</span>
+                <span class="status-value val-offline" id="valMic">Inactive</span>
+              </div>
+            </div>
+            <div class="status-item" id="statusEngine">
+              <span class="status-indicator-dot dot-offline"></span>
+              <div class="status-info">
+                <span class="status-label">Speech Engine</span>
+                <span class="status-value val-offline" id="valEngine">Idle</span>
+              </div>
+            </div>
+          </div>
+          <div class="status-actions">
+            <button class="btn btn-primary" id="btnConnectSerial">Connect Arduino</button>
+            <button class="btn btn-secondary btn-caution" id="btnToggleSimulate">Enable Simulation</button>
+          </div>
+        </section>
+
+        <!-- Configuration Settings Card -->
+        <section class="dashboard-card settings-card">
+          <h2 class="card-title">Interface Settings</h2>
+          
+          <div class="setting-group">
+            <label for="selectLanguage" class="setting-label">Speech Language</label>
+            <select id="selectLanguage" class="setting-select">
+              <option value="en-US">English (United States)</option>
+              <option value="en-GB">English (United Kingdom)</option>
+              <option value="es-ES">Spanish (Spain)</option>
+              <option value="fr-FR">French (France)</option>
+              <option value="de-DE">German (Germany)</option>
+              <option value="it-IT">Italian (Italy)</option>
+              <option value="zh-CN">Chinese (Simplified)</option>
+              <option value="ja-JP">Japanese (Japan)</option>
+            </select>
+          </div>
+
+          <div class="setting-group">
+            <label for="selectLayout" class="setting-label">LCD Display Layout</label>
+            <select id="selectLayout" class="setting-select">
+              <option value="wrap">Smart Word-Wrap (2 lines)</option>
+              <option value="scroll">Horizontal Auto-Scroll</option>
+              <option value="truncate">Truncate Line 2</option>
+            </select>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label">LCD Backlight Brightness</label>
+            <div class="slider-container">
+              <span class="slider-icon">💡</span>
+              <input type="range" id="rangeBrightness" min="10" max="100" value="100" class="setting-slider">
+              <span class="slider-val" id="valBrightness">100%</span>
+            </div>
+          </div>
+
+          <div class="setting-group checkbox-group">
+            <input type="checkbox" id="chkAutoSend" checked>
+            <label for="chkAutoSend" class="checkbox-label">Transmit captions instantly</label>
+          </div>
+        </section>
+      </div>
+
+      <!-- COLUMN 2: Audio Input, Transcriptions, LCD Preview -->
+      <div class="grid-column col-center">
+        <!-- Live Caption Input Card -->
+        <section class="dashboard-card speech-card">
+          <div class="speech-header">
+            <h2 class="card-title">Live Caption Engine</h2>
+            <div class="rec-pulse-indicator" id="recPulseIndicator">
+              <span class="pulse-dot"></span>
+              <span class="pulse-text">LISTENING</span>
+            </div>
+          </div>
+          
+          <div class="speech-control-area">
+            <button class="mic-button" id="btnToggleListening" aria-label="Toggle speech recognition">
+              <div class="mic-icon-circle">
+                <svg viewBox="0 0 24 24" class="mic-svg">
+                  <path fill="currentColor" d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
+                </svg>
+              </div>
+              <div class="soundwave-container" id="soundwaveContainer">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+              </div>
+            </button>
+            <p class="speech-instruction" id="speechInstruction">Click the microphone to start transcribing</p>
+          </div>
+
+          <div class="transcript-display-container">
+            <div class="transcript-label">Interim Transcription Stream</div>
+            <div class="transcript-pane" id="transcriptPane">
+              <span class="transcript-placeholder" id="transcriptPlaceholder">Captions will appear here in real-time as you speak...</span>
+              <span class="interim-text" id="interimText"></span>
+              <span class="finalized-text" id="finalizedText"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Simulated hardware display visualizer -->
+        <section class="dashboard-card preview-card">
+          <div class="preview-header">
+            <h2 class="card-title">16×2 LCD Hardware Preview</h2>
+            <span class="preview-tag">Wired (I2C Backpack)</span>
+          </div>
+
+          <div class="lcd-housing-outer">
+            <div class="lcd-housing-inner">
+              <div class="lcd-bezel">
+                <!-- LCD Screen Matrix -->
+                <div class="lcd-screen" id="lcdScreen">
+                  <div class="lcd-line" id="lcdLine1">Echolens Ready...</div>
+                  <div class="lcd-line" id="lcdLine2">Waiting for Input</div>
+                </div>
+              </div>
+            </div>
+            <div class="lcd-metal-accent-l"></div>
+            <div class="lcd-metal-accent-r"></div>
+          </div>
+
+          <div class="preview-footer-controls">
+            <div class="input-send-group">
+              <input type="text" id="txtDirectSend" placeholder="Type custom message to send..." maxlength="32" class="direct-input">
+              <button class="btn btn-primary" id="btnSendDirect">Send Message</button>
+            </div>
+            <div class="lcd-quick-actions">
+              <button class="btn btn-secondary" id="btnResendCaption">Send Again</button>
+              <button class="btn btn-secondary" id="btnClearDisplay">Clear Display</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- COLUMN 3: Transcription History & Developer Console Logs -->
+      <div class="grid-column col-right-panel">
+        <!-- History Feed Card -->
+        <section class="dashboard-card history-card">
+          <div class="history-header">
+            <h2 class="card-title">Saved Transcription Feed</h2>
+            <button class="btn-text-link" id="btnClearHistory">Clear All</button>
+          </div>
+          <div class="history-list" id="historyList">
+            <!-- Dynamic list items will go here -->
+            <div class="history-empty" id="historyEmpty">No recorded transcription history for this session yet.</div>
+          </div>
+        </section>
+
+        <!-- Developer Activity Console -->
+        <section class="dashboard-card terminal-card">
+          <div class="terminal-header">
+            <h2 class="card-title">Developer Terminal Logs</h2>
+            <button class="btn-text-link" id="btnClearTerminal">Clear Logs</button>
+          </div>
+          <div class="terminal-body" id="terminalLogs">
+            <!-- Dynamic log streams -->
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-left">EchoLens Hardware Interface - Prototype v1.0.0</div>
+      <div class="footer-right">Web Serial + Speech API Interface</div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
