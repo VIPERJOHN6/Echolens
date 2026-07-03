@@ -119,7 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
     btnToggleListening.disabled = true;
     btnToggleListening.style.opacity = '0.5';
     btnToggleListening.style.cursor = 'not-allowed';
-    speechInstruction.textContent = "Speech recognition unsupported on this browser.";
+    speechInstruction.innerHTML = "<span style='color: #ff4444;'>Browser unsupported. Please open this site in Google Chrome or Microsoft Edge.</span>";
+    transcriptPlaceholder.textContent = "Speech Recognition is not supported on this browser (e.g., Safari/Firefox). Please use Chrome.";
   } else {
     log("Web Speech API detected and ready.", "system");
   }
@@ -397,116 +398,176 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // --- Speech Recognition Integration ---
-  if (isSpeechSupported) {
+  function initializeSpeechRecognition() {
+    if (!isSpeechSupported) return;
+
+    if (speechRecognition) {
+      try {
+        speechRecognition.abort();
+      } catch (e) {
+        // Ignore abort errors while resetting the engine.
+      }
+    }
+
     speechRecognition = new SpeechRecognitionAPI();
     speechRecognition.continuous = true;
     speechRecognition.interimResults = true;
-    
+    speechRecognition.lang = selectLanguage.value;
+
     speechRecognition.onstart = () => {
       isListening = true;
       btnToggleListening.classList.add('listening');
       recPulseIndicator.classList.add('active');
       speechInstruction.textContent = "Speech Engine is active. Speak now.";
-      
+
       statusMic.querySelector('.status-indicator-dot').className = 'status-indicator-dot dot-listening';
       valMic.textContent = "Active";
       valMic.className = "status-value val-listening";
-      
+
       statusEngine.querySelector('.status-indicator-dot').className = 'status-indicator-dot dot-online';
       valEngine.textContent = "Running";
       valEngine.className = "status-value val-online";
-      
+
       log("Speech recognition started.", "speech");
     };
 
     speechRecognition.onerror = (event) => {
+      console.error("Speech Error:", event.error);
       log(`Speech recognition error: ${event.error}`, "err");
       if (event.error === 'not-allowed') {
         speechInstruction.textContent = "Microphone access blocked. Check permissions.";
         forceStopSpeech = true;
-        stopListening();
+        stopListening(false);
+      } else if (event.error === 'audio-capture') {
+        speechInstruction.textContent = "No microphone found or microphone is disabled/muted.";
+        forceStopSpeech = true;
+        stopListening(false);
+      } else if (event.error === 'network') {
+        speechInstruction.textContent = "Network error. Speech API requires internet access.";
+        forceStopSpeech = true;
+        stopListening(false);
+      } else if (event.error === 'no-speech') {
+        log("No speech detected. Engine will auto-restart.", "speech");
       }
+    };
+
+    speechRecognition.onsoundstart = () => {
+      log("Microphone detected sound...", "speech");
+    };
+
+    speechRecognition.onspeechstart = () => {
+      log("Speech engine recognized voice input...", "speech");
     };
 
     speechRecognition.onend = () => {
       isListening = false;
       btnToggleListening.classList.remove('listening');
       recPulseIndicator.classList.remove('active');
-      
+
       statusMic.querySelector('.status-indicator-dot').className = 'status-indicator-dot dot-offline';
       valMic.textContent = "Inactive";
       valMic.className = "status-value val-offline";
-      
+
       statusEngine.querySelector('.status-indicator-dot').className = 'status-indicator-dot dot-offline';
       valEngine.textContent = "Idle";
       valEngine.className = "status-value val-offline";
-      
+
       log("Speech recognition stopped.", "speech");
-      
+
       // Auto-restart speech engine if not stopped manually by user
       if (!forceStopSpeech) {
         log("Auto-restarting speech engine to maintain connection...", "speech");
-        speechRecognition.start();
+        setTimeout(() => {
+          try {
+            initializeSpeechRecognition();
+            speechRecognition.start();
+          } catch (e) {
+            log(`Failed to restart speech engine: ${e.message}`, "err");
+          }
+        }, 250);
       }
     };
 
     speechRecognition.onresult = (event) => {
       let interimTranscript = '';
-      let finalTranscript = '';
+      let currentFinal = '';
 
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
+          currentFinal += event.results[i][0].transcript;
         } else {
           interimTranscript += event.results[i][0].transcript;
         }
       }
 
-      transcriptPlaceholder.style.display = (interimTranscript || finalTranscript) ? 'none' : 'block';
+      console.log(event);
+      console.log(interimTranscript);
+      console.log(currentFinal);
+
       interimText.textContent = interimTranscript;
 
       // Handle final transcription block
-      if (finalTranscript.trim()) {
-        const cleanText = finalTranscript.trim();
-        finalizedText.textContent = cleanText;
+      if (currentFinal.trim()) {
+        const cleanText = currentFinal.trim();
+        finalizedText.textContent += cleanText + ' ';
         lastCaptionText = cleanText;
-        
+
         log(`Recognized final speech: "${cleanText}"`, "speech");
 
-        // Instantly save to feed history
         saveToFeedHistory(cleanText);
 
-        // Auto-transmit directly to simulated/real hardware screen
         if (chkAutoSend.checked) {
           updateLCDDisplay(cleanText);
         }
       }
+
+      transcriptPlaceholder.style.display = (finalizedText.textContent.trim() || interimTranscript.trim()) ? 'none' : 'block';
     };
+  }
+
+  if (isSpeechSupported) {
+    initializeSpeechRecognition();
   }
 
   function startListening() {
     if (!isSpeechSupported) return;
+    if (isListening) return;
     forceStopSpeech = false;
-    speechRecognition.lang = selectLanguage.value;
-    try {
-      speechRecognition.start();
-    } catch(e) {
-      log(`Error starting speech recognition: ${e.message}`, "err");
+    if (!speechRecognition) {
+      initializeSpeechRecognition();
     }
-  }
-
-  function stopListening() {
-    if (!isSpeechSupported) return;
-    forceStopSpeech = true;
-    try {
-      speechRecognition.stop();
-    } catch(e) {
-      log(`Error stopping speech recognition: ${e.message}`, "err");
-    }
-    speechInstruction.textContent = "Click the microphone to start transcribing";
+    
+    // Clear previous transcripts when manually starting a new session
     interimText.textContent = "";
     finalizedText.textContent = "";
     transcriptPlaceholder.style.display = 'block';
+
+    speechRecognition.lang = selectLanguage.value;
+    speechInstruction.textContent = "Initializing speech recognition...";
+    try {
+      speechRecognition.start();
+    } catch (e) {
+      log(`Error starting speech recognition: ${e.message}`, "err");
+      speechInstruction.textContent = "Unable to start speech recognition.";
+    }
+  }
+
+  function stopListening(clearTranscript = false) {
+    if (!isSpeechSupported || !speechRecognition) return;
+    forceStopSpeech = true;
+    try {
+      speechRecognition.stop();
+    } catch (e) {
+      log(`Error stopping speech recognition: ${e.message}`, "err");
+    }
+    speechInstruction.textContent = "Click the microphone to start transcribing";
+    if (clearTranscript) {
+      interimText.textContent = "";
+      finalizedText.textContent = "";
+      transcriptPlaceholder.style.display = 'block';
+    } else {
+      transcriptPlaceholder.style.display = (finalizedText.textContent.trim() || interimText.textContent.trim()) ? 'none' : 'block';
+    }
   }
 
   btnToggleListening.addEventListener('click', () => {
